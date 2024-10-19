@@ -19,16 +19,10 @@ async def update_list_message(context: CallbackContext, chat_id: int) -> None:
     if checklist:
         text = '\n'.join(checklist)
     else:
-        text = "Чек-лист пуст."
+        text = "Список пуст."
 
     if current_message_id:
         try:
-            # Получаем текущее сообщение, чтобы проверить его текст
-            current_message = await context.bot.get_message(chat_id=chat_id, message_id=current_message_id)
-            if current_message.text == text:
-                return  # Если текст не изменился, не обновляем сообщение
-
-            # Обновляем сообщение, если текст изменился
             await context.bot.edit_message_text(text=text, chat_id=chat_id, message_id=current_message_id)
         except Exception as e:
             print(f"Ошибка при обновлении сообщения: {e}")
@@ -41,17 +35,18 @@ async def update_list_message(context: CallbackContext, chat_id: int) -> None:
 # Обработка введенного текста (добавление продуктов)
 async def add_products(update: Update, context: CallbackContext) -> None:
     global product_list, checklist
-
-    # Продукты могут быть разделены запятыми или новой строкой
-    products = update.message.text.replace(',', '\n').split('\n')
+    products = update.message.text.replace(',', '\n').split('\n')  # Продукты могут быть разделены запятыми или новой строкой
+    added_new = False
 
     for product in products:
-        product = product.strip()  # Убираем пробелы
+        product = product.strip()
         if product and product not in product_list:  # Проверяем, что продукт не пуст и его нет в списке
             product_list.append(product)
             checklist.append(product)
+            added_new = True
 
-    await update_list_message(context, update.message.chat_id)
+    if added_new:
+        await update_list_message(context, update.message.chat_id)  # Обновляем список только если были новые продукты
 
     # Удаляем сообщение с продуктами
     await update.message.delete()
