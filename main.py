@@ -24,7 +24,8 @@ async def update_list_message(context: CallbackContext, chat_id: int) -> None:
     if current_message_id:
         try:
             await context.bot.edit_message_text(text=text, chat_id=chat_id, message_id=current_message_id)
-        except Exception:
+        except Exception as e:
+            print(f"Ошибка при обновлении сообщения: {e}")
             current_message_id = None
 
     if not current_message_id:
@@ -34,15 +35,15 @@ async def update_list_message(context: CallbackContext, chat_id: int) -> None:
 # Обработка введенного текста (добавление продуктов)
 async def add_products(update: Update, context: CallbackContext) -> None:
     global product_list, checklist
-    products = update.message.text.split('\n')  # Разделяем продукты по строкам
 
-    new_products = []
+    # Продукты могут быть разделены запятыми или новой строкой
+    products = update.message.text.replace(',', '\n').split('\n')
+
     for product in products:
         product = product.strip()  # Убираем пробелы
         if product and product not in product_list:  # Проверяем, что продукт не пуст и его нет в списке
             product_list.append(product)
             checklist.append(product)
-            new_products.append(product)
 
     await update_list_message(context, update.message.chat_id)
 
@@ -75,7 +76,7 @@ async def remove_item(update: Update, context: CallbackContext) -> None:
     # Удаляем сообщение с командой
     await update.message.delete()
 
-# Обработка нажатий на кнопки
+# Обработка нажатий на кнопки (удаление продукта)
 async def button(update: Update, context: CallbackContext) -> None:
     query = update.callback_query
     await query.answer()
@@ -84,9 +85,11 @@ async def button(update: Update, context: CallbackContext) -> None:
 
     if product_to_remove in checklist:
         checklist.remove(product_to_remove)
-        await query.edit_message_text(text=f"Удален пункт: {product_to_remove}")
 
     await update_list_message(context, query.message.chat_id)
+
+    # Удаляем сообщение с кнопками
+    await query.message.delete()
 
 # Удаление всех лишних сообщений (включая команды)
 async def delete_all_messages(update: Update, context: CallbackContext) -> None:
