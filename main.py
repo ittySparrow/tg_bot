@@ -1,5 +1,5 @@
 import os
-from telegram import Update
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 import asyncio
 
@@ -10,14 +10,14 @@ current_message_id = None  # ID текущего сообщения со спи�
 
 # Команда /start
 async def start(update: Update, context: CallbackContext) -> None:
-    await update.message.reply_text('Привет! Введи продукт или список продуктов через запятую для добавления в чек-лист.')
+    await update.message.reply_text('Привет! Введи продукт или список продуктов для добавления в чек-лист.')
 
 # Обновление или создание сообщения со списком
 async def update_list_message(context: CallbackContext, chat_id: int) -> None:
     global current_message_id, checklist
 
     if checklist:
-        text = "Текущий чек-лист:\n" + '\n'.join(checklist)
+        text = "Список продуктов:\n" + '\n'.join(checklist)
     else:
         text = "Чек-лист пуст."
 
@@ -34,7 +34,7 @@ async def update_list_message(context: CallbackContext, chat_id: int) -> None:
 # Обработка введенного текста (добавление продуктов)
 async def add_products(update: Update, context: CallbackContext) -> None:
     global product_list, checklist
-    products = update.message.text.split(',')
+    products = update.message.text.split('\n')
     new_products = []
 
     for product in products:
@@ -58,18 +58,20 @@ async def clear_list(update: Update, context: CallbackContext) -> None:
     # Удаляем сообщение с командой
     await update.message.delete()
 
-# Команда для удаления отдельного продукта
+
+# Команда для удаления отдельного продукта с кнопками
 async def remove_item(update: Update, context: CallbackContext) -> None:
     global checklist
-    item = ' '.join(context.args).strip()
 
-    if item in checklist:
-        checklist.remove(item)
-        await update.message.reply_text(f"Удален пункт: {item}")
-    else:
-        await update.message.reply_text(f"Пункт '{item}' не найден.")
+    if not checklist:
+        await update.message.reply_text("Список продуктов пуст.")
+        return
 
-    await update_list_message(context, update.message.chat_id)
+    # Создаем кнопки для каждого продукта
+    keyboard = [[InlineKeyboardButton(product, callback_data=product)] for product in checklist]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await update.message.reply_text("Выбери продукт для удаления:", reply_markup=reply_markup)
 
     # Удаляем сообщение с командой
     await update.message.delete()
