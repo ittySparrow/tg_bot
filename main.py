@@ -23,6 +23,12 @@ async def update_list_message(context: CallbackContext, chat_id: int) -> None:
 
     if current_message_id:
         try:
+            # Получаем текущее сообщение, чтобы проверить его текст
+            current_message = await context.bot.get_message(chat_id=chat_id, message_id=current_message_id)
+            if current_message.text == text:
+                return  # Если текст не изменился, не обновляем сообщение
+
+            # Обновляем сообщение, если текст изменился
             await context.bot.edit_message_text(text=text, chat_id=chat_id, message_id=current_message_id)
         except Exception as e:
             print(f"Ошибка при обновлении сообщения: {e}")
