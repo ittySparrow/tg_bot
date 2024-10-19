@@ -89,6 +89,9 @@ async def button(update: Update, context: CallbackContext) -> None:
 
     await update_list_message(context, query.message.chat_id)
 
+    # Удаляем сообщение с командой
+    await update.message.delete()
+
 # Основная функция запуска бота
 async def run_bot() -> None:
     token = os.getenv("BOT_TOKEN")
