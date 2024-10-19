@@ -34,12 +34,12 @@ async def update_list_message(context: CallbackContext, chat_id: int) -> None:
 # Обработка введенного текста (добавление продуктов)
 async def add_products(update: Update, context: CallbackContext) -> None:
     global product_list, checklist
-    products = update.message.text.split('\n')
-    new_products = []
+    products = update.message.text.split('\n')  # Разделяем продукты по строкам
 
+    new_products = []
     for product in products:
-        product = product.strip()
-        if product and product not in product_list:
+        product = product.strip()  # Убираем пробелы
+        if product and product not in product_list:  # Проверяем, что продукт не пуст и его нет в списке
             product_list.append(product)
             checklist.append(product)
             new_products.append(product)
@@ -58,7 +58,6 @@ async def clear_list(update: Update, context: CallbackContext) -> None:
     # Удаляем сообщение с командой
     await update.message.delete()
 
-
 # Команда для удаления отдельного продукта с кнопками
 async def remove_item(update: Update, context: CallbackContext) -> None:
     global checklist
@@ -76,7 +75,7 @@ async def remove_item(update: Update, context: CallbackContext) -> None:
     # Удаляем сообщение с командой
     await update.message.delete()
 
-    # Обработка нажатий на кнопки
+# Обработка нажатий на кнопки
 async def button(update: Update, context: CallbackContext) -> None:
     query = update.callback_query
     await query.answer()
@@ -89,7 +88,8 @@ async def button(update: Update, context: CallbackContext) -> None:
 
     await update_list_message(context, query.message.chat_id)
 
-    # Удаляем сообщение с командой
+# Удаление всех лишних сообщений (включая команды)
+async def delete_all_messages(update: Update, context: CallbackContext) -> None:
     await update.message.delete()
 
 # Основная функция запуска бота
@@ -102,8 +102,12 @@ async def run_bot() -> None:
     application.add_handler(CommandHandler("clear", clear_list))
     application.add_handler(CommandHandler("remove", remove_item))
     application.add_handler(CallbackQueryHandler(button))
+
     # Обработчик сообщений с продуктами
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, add_products))
+
+    # Удаление всех сообщений
+    application.add_handler(MessageHandler(filters.ALL, delete_all_messages))
 
     # Запуск бота
     await application.initialize()  # Инициализация бота
