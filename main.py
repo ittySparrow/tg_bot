@@ -9,7 +9,6 @@ checklist = []
 
 # Команда /start
 async def start(update: Update, context: CallbackContext) -> None:
-    print(f"Chat ID: {update.message.chat_id}")
     await update.message.reply_text('Привет! Введи продукт или список продуктов через запятую для добавления в чек-лист.')
 
 # Обработка введенного текста (добавление продуктов)
