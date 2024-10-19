@@ -17,7 +17,7 @@ async def update_list_message(context: CallbackContext, chat_id: int) -> None:
     global current_message_id, checklist
 
     if checklist:
-        text = "Список продуктов:\n" + '\n'.join(checklist)
+        text = '\n'.join(checklist)
     else:
         text = "Чек-лист пуст."
 
@@ -85,6 +85,7 @@ async def button(update: Update, context: CallbackContext) -> None:
 
     if product_to_remove in checklist:
         checklist.remove(product_to_remove)
+        product_list.remove(product_to_remove)
 
     await update_list_message(context, query.message.chat_id)
 
