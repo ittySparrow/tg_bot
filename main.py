@@ -1,6 +1,6 @@
 import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext, CallbackQueryHandler
 import asyncio
 
 # База данных для продуктов и чек-лист
@@ -76,6 +76,19 @@ async def remove_item(update: Update, context: CallbackContext) -> None:
     # Удаляем сообщение с командой
     await update.message.delete()
 
+    # Обработка нажатий на кнопки
+async def button(update: Update, context: CallbackContext) -> None:
+    query = update.callback_query
+    await query.answer()
+
+    product_to_remove = query.data
+
+    if product_to_remove in checklist:
+        checklist.remove(product_to_remove)
+        await query.edit_message_text(text=f"Удален пункт: {product_to_remove}")
+
+    await update_list_message(context, query.message.chat_id)
+
 # Основная функция запуска бота
 async def run_bot() -> None:
     token = os.getenv("BOT_TOKEN")
@@ -85,7 +98,7 @@ async def run_bot() -> None:
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("clear", clear_list))
     application.add_handler(CommandHandler("remove", remove_item))
-
+    application.add_handler(CallbackQueryHandler(button))
     # Обработчик сообщений с продуктами
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, add_products))
 
