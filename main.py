@@ -52,8 +52,11 @@ async def add_products(update: Update, context: CallbackContext) -> None:
 
 # Команда для очищения списка
 async def clear_list(update: Update, context: CallbackContext) -> None:
-    global checklist
+    global checklist, product_list
+
     checklist = []
+    product_list = []
+
     await update_list_message(context, update.message.chat_id)
 
     # Удаляем сообщение с командой
